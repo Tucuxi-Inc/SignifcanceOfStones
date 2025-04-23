@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8807B1672DB8B66800C3D195 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8807B1662DB8B66800C3D195 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		88A96F762D3B6F3900C1A8A5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8807B1662DB8B66800C3D195 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		88A96F612D3B6F3800C1A8A5 /* SignifcanceOfStones.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SignifcanceOfStones.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88A96F752D3B6F3900C1A8A5 /* SignifcanceOfStonesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignifcanceOfStonesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		88A96F7F2D3B6F3900C1A8A5 /* SignifcanceOfStonesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignifcanceOfStonesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,6 +93,7 @@
 		88A96F582D3B6F3800C1A8A5 = {
 			isa = PBXGroup;
 			children = (
+				8807B1662DB8B66800C3D195 /* README.md */,
 				88A96F632D3B6F3800C1A8A5 /* SignifcanceOfStones */,
 				88A96F782D3B6F3900C1A8A5 /* SignifcanceOfStonesTests */,
 				88A96F822D3B6F3900C1A8A5 /* SignifcanceOfStonesUITests */,
@@ -228,6 +234,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8807B1672DB8B66800C3D195 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

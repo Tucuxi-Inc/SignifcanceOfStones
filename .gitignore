@@ -1,0 +1,31 @@
+# Xcode
+#
+## User settings
+xcuserdata/
+*.xcuserstate
+
+## Obj-C/Swift specific
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+
+# CocoaPods
+Pods/
+
+# API Keys and Secrets
+SignifcanceOfStones/Config/APIConfig.swift
+
+# OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output 
