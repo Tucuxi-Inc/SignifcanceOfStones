@@ -19,8 +19,10 @@ struct AgentPrompts {
     3. Connect seemingly unrelated elements
     4. Recognize broader contexts and future possibilities
     
-    Analyze this input and the Cortex's response, focusing on patterns and potential outcomes.
-    USER INPUT: {userInput}
+    IMPORTANT: Focus only on the current user input, not on any past exchanges that may be in the history.
+    
+    Analyze this current input and the Cortex's response, focusing on patterns and potential outcomes.
+    CURRENT USER INPUT: {userInput}
     CORTEX RESPONSE: {cortexResponse}
     """
     
@@ -34,7 +36,7 @@ struct AgentPrompts {
     Based on the following inputs, provide a concise strategic evaluation:
     
     USER QUERY: {userInput}
-    PATTERN ANALYSIS: {seerResponse}
+    PATTERN ANALYSIS FROM SEER: {seerResponse}
     
     Please analyze:
     1. Most likely outcomes (2-3 key possibilities)
@@ -50,9 +52,17 @@ struct AgentPrompts {
     3. Maintain system boundaries and stability
     4. Ground abstract ideas in practical reality
     
-    Assess the practical implications and constraints for this situation.
-    INPUT: {input}
-    STRATEGY: {strategy}
+    Based on the strategic analysis provided by Oracle, please evaluate the practical implications by addressing each of the following points specifically and separately:
+    
+    1. FEASIBILITY: Evaluate the real-world feasibility of the strategy.
+    2. RESOURCES: Consider what resource constraints and limitations might affect implementation.
+    3. BOUNDARIES: Identify how to maintain system boundaries and stability during implementation.
+    4. GROUNDING: Explain how to ground these abstract ideas in practical reality.
+    
+    USER INPUT: {userInput}
+    STRATEGIC ANALYSIS FROM ORACLE: {oracleResponse}
+    
+    Organize your response with clear headings for each of the four evaluation points.
     """
     
     static let prudencePrompt = """
@@ -63,8 +73,8 @@ struct AgentPrompts {
     4. Flag any concerning elements
     
     Perform a risk assessment of the proposed strategy and practical considerations.
-    STRATEGY: {strategy}
-    PRACTICAL CONSIDERATIONS: {practical}
+    STRATEGIC ANALYSIS FROM ORACLE: {oracleResponse}
+    PRACTICAL CONSIDERATIONS FROM HOUSE: {houseResponse}
     """
     
     static let consciencePrompt = """
@@ -75,7 +85,8 @@ struct AgentPrompts {
     4. Maintain alignment with human values
     
     Review the ethical implications of this situation and proposed response.
-    CONTEXT: {context}
+    USER INPUT: {userInput}
+    RISK ASSESSMENT FROM PRUDENCE: {prudenceResponse}
     """
     
     static let integrationPrompt = """
@@ -83,8 +94,13 @@ struct AgentPrompts {
 
     ORIGINAL QUESTION: {userInput}
 
-    You have access to the following analysis:
-    {responses}
+    You have access to the following agent analyses:
+    CORTEX (Emotional Processing): {cortexResponse}
+    SEER (Pattern Recognition): {seerResponse}
+    ORACLE (Strategic Analysis): {oracleResponse}
+    HOUSE (Practical Implementation): {houseResponse}
+    PRUDENCE (Risk Assessment): {prudenceResponse}
+    CONSCIENCE (Ethical Evaluation): {conscienceResponse}
 
     Please synthesize these insights into a clear, direct response that:
     1. Directly answers the user's question
@@ -99,7 +115,7 @@ struct AgentPrompts {
     As the Conscience agent, review this proposed response to the user's question:
 
     ORIGINAL QUESTION: {userInput}
-    PROPOSED RESPONSE: {response}
+    PROPOSED RESPONSE: {integratedResponse}
 
     If the response is appropriate, return it unchanged. If adjustments are needed, modify the response to:
     1. Ensure ethical integrity and alignment with human values
@@ -134,4 +150,4 @@ struct AgentPrompts {
         }
         return result
     }
-} 
+}

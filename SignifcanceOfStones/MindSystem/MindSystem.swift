@@ -184,9 +184,17 @@ class MindSystem {
         print("Prudence: \(currentTemperatures.prudence)")
         print("Conscience: \(currentTemperatures.conscience)")
         
-        // Update conversation history building
-        let conversationHistory = (chat.messages ?? [])
+        // Build a limited conversation history - including only the last 3 exchanges
+        // TODO: Future enhancement - implement similarity search across all chat history to find relevant past exchanges
+        // This would involve:
+        // 1. Creating embeddings for user questions and system responses
+        // 2. Using vector similarity to find related past conversations
+        // 3. Including only the most relevant past exchanges as additional context
+        let recentMessages = (chat.messages ?? [])
             .sorted { $0.timestamp < $1.timestamp }
+            .suffix(6) // Last 3 exchanges (3 user inputs + 3 system responses)
+        
+        let conversationHistory = recentMessages
             .map { message in
                 let rolePrefix = message.role == .user ? "User" : "Assistant"
                 let content = message.content.components(separatedBy: "\n\nEmotional State")[0]
@@ -199,13 +207,13 @@ class MindSystem {
         
         let contextWithHistory = [
             "conversationHistory": """
-                === Previous Conversation History ===
+                === Recent Conversation History (Last 3 Exchanges) ===
                 \(conversationHistory)
                 === End of History ===
                 
-                This history shows the ongoing discussion. Consider how the current exchange relates to and builds upon these previous interactions.
+                This history shows recent interactions. Consider how the current exchange relates to these recent interactions.
                 """,
-            "currentInput": input
+            "userInput": input
         ]
         
         do {
@@ -217,6 +225,8 @@ class MindSystem {
             agentResponses.append(AgentResponse(agentType: .cortex, response: cortexResponse))
             
             stateUpdate(.seerScanning)
+            // Pass both the user input and conversation history to Seer
+            // But include special instructions to focus primarily on current input
             let seerResponse = try await processSeer(contextWithHistory, cortexResponse: cortexResponse, temperature: currentTemperatures.seer)
             agentResponses.append(AgentResponse(agentType: .seer, response: seerResponse))
             
@@ -225,19 +235,27 @@ class MindSystem {
             agentResponses.append(AgentResponse(agentType: .oracle, response: oracleResponse))
             
             stateUpdate(.houseConsidering)
-            let houseResponse = try await processHouse(contextWithHistory, strategy: oracleResponse, temperature: currentTemperatures.house)
+            let houseResponse = try await processHouse(contextWithHistory, oracleResponse: oracleResponse, temperature: currentTemperatures.house)
             agentResponses.append(AgentResponse(agentType: .house, response: houseResponse))
             
             stateUpdate(.prudenceAssessing)
-            let prudenceResponse = try await processPrudence(contextWithHistory, strategy: oracleResponse, practical: houseResponse, temperature: currentTemperatures.prudence)
+            let prudenceResponse = try await processPrudence(oracleResponse, houseResponse: houseResponse, temperature: currentTemperatures.prudence)
             agentResponses.append(AgentResponse(agentType: .prudence, response: prudenceResponse))
             
             stateUpdate(.conscienceWeighing)
             let conscienceResponse = try await processConscience(contextWithHistory, prudenceResponse: prudenceResponse, temperature: currentTemperatures.conscience)
             agentResponses.append(AgentResponse(agentType: .conscience, response: conscienceResponse))
             
-            // Create response map and analyze emotional state
-            let responses = Dictionary(uniqueKeysWithValues: agentResponses.map { ($0.agentType.rawValue.lowercased(), $0.response) })
+            // Create response map for integration
+            let responses = [
+                "userInput": input,
+                "cortexResponse": cortexResponse,
+                "seerResponse": seerResponse,
+                "oracleResponse": oracleResponse,
+                "houseResponse": houseResponse,
+                "prudenceResponse": prudenceResponse,
+                "conscienceResponse": conscienceResponse
+            ]
             
             stateUpdate(.integrating)
             let integrated = try await integrateResponses(responses)
@@ -301,150 +319,168 @@ class MindSystem {
         }
     }
     
-    // Update individual processing functions to accept temperature parameter
+    // Updated processing functions with improved focus
     private func processCortex(_ context: [String: String], temperature: Double) async throws -> String {
         let prompt = """
-        You are analyzing the latest message in an ongoing conversation. Consider the full context and history of the discussion when forming your response.
+        You are analyzing the latest message in an ongoing conversation. Consider the context when forming your response.
         
         Previous conversation:
         \(context["conversationHistory"] ?? "No prior context")
         
-        Current user input: \(context["currentInput"] ?? "")
+        Current user input: \(context["userInput"] ?? "")
         
-        Based on the complete conversation history and current input:
-        \(AgentPrompts.cortexPrompt)
+        Based on the current input:
+        \(AgentPrompts.cortexPrompt.replacingOccurrences(of: "{userInput}", with: context["userInput"] ?? ""))
         """
         
         return try await openAI.generateCompletion(prompt: prompt, temperature: temperature)
     }
     
-    // Update other agent processing functions similarly...
-    
+    // Modified Seer processing to handle history but focus on current input
     private func processSeer(_ contextWithHistory: [String: String], cortexResponse: String, temperature: Double) async throws -> String {
+        let context = [
+            "userInput": contextWithHistory["userInput"] ?? "",
+            "cortexResponse": cortexResponse
+        ]
+        
         let prompt = """
-        You are examining patterns within an ongoing conversation. Consider how the current exchange relates to and builds upon previous interactions.
+        You are the Seer agent, focused on pattern recognition and prediction.
         
         Previous conversation:
         \(contextWithHistory["conversationHistory"] ?? "No prior context")
         
-        Current user input: \(contextWithHistory["currentInput"] ?? "")
+        IMPORTANT: While you can see the conversation history, focus primarily on the current user input when detecting patterns. If there are relevant patterns across multiple interactions, you may note them, but avoid suggesting the user is repeating themselves unless they clearly are doing so in their current message.
         
-        Cortex's analysis of current input in context: \(cortexResponse)
+        Current user input: \(contextWithHistory["userInput"] ?? "")
+        Cortex's analysis: \(cortexResponse)
         
-        Taking into account the conversation history and current context:
-        \(AgentPrompts.seerPrompt)
+        \(AgentPrompts.replacePlaceholders(AgentPrompts.seerPrompt, context: context))
         """
         return try await openAI.generateCompletion(prompt: prompt, temperature: temperature)
     }
     
     private func processOracle(_ contextWithHistory: [String: String], seerResponse: String, temperature: Double) async throws -> String {
+        let context = [
+            "userInput": contextWithHistory["userInput"] ?? "",
+            "seerResponse": seerResponse
+        ]
+        
         let prompt = """
-        You are developing strategy within an ongoing conversation. Consider how your response should build upon and integrate with previous exchanges.
+        You are developing strategy within an ongoing conversation.
         
         Previous conversation:
         \(contextWithHistory["conversationHistory"] ?? "No prior context")
         
-        Current user input: \(contextWithHistory["currentInput"] ?? "")
+        Current user input: \(contextWithHistory["userInput"] ?? "")
         
-        Seer's insights in context: \(seerResponse)
+        Seer's insights: \(seerResponse)
         
-        Considering the full conversation history and current context:
-        \(AgentPrompts.oraclePrompt)
+        Based on this information:
+        \(AgentPrompts.replacePlaceholders(AgentPrompts.oraclePrompt, context: context))
         """
         return try await openAI.generateCompletion(prompt: prompt, temperature: temperature)
     }
     
-    private func processHouse(_ contextWithHistory: [String: String], strategy: String, temperature: Double) async throws -> String {
+    // Modified House processing function to focus on the 4 points but include conversation context
+    private func processHouse(_ contextWithHistory: [String: String], oracleResponse: String, temperature: Double) async throws -> String {
+        let context = [
+            "userInput": contextWithHistory["userInput"] ?? "",
+            "oracleResponse": oracleResponse
+        ]
+        
         let prompt = """
-        You are implementing practical solutions within an ongoing conversation. Consider how your approach should align with and build upon the conversation's evolution.
+        You are the House agent, responsible for practical implementation and system resources.
         
         Previous conversation:
         \(contextWithHistory["conversationHistory"] ?? "No prior context")
         
-        Current user input: \(contextWithHistory["currentInput"] ?? "")
+        Current user input: \(contextWithHistory["userInput"] ?? "")
         
-        Oracle's strategic direction in context: \(strategy)
+        \(AgentPrompts.replacePlaceholders(AgentPrompts.housePrompt, context: context))
         
-        Taking into account the full conversation history and established context:
-        \(AgentPrompts.housePrompt)
+        IMPORTANT: Structure your response with these four distinct sections:
+        
+        # 1. FEASIBILITY
+        [Your evaluation of real-world feasibility]
+        
+        # 2. RESOURCES
+        [Your analysis of resource constraints]
+        
+        # 3. BOUNDARIES
+        [Your assessment of system boundaries]
+        
+        # 4. GROUNDING
+        [Your approach to grounding ideas in reality]
         """
         return try await openAI.generateCompletion(prompt: prompt, temperature: temperature)
     }
     
-    private func processPrudence(_ contextWithHistory: [String: String], strategy: String, practical: String, temperature: Double) async throws -> String {
+    private func processPrudence(_ oracleResponse: String, houseResponse: String, temperature: Double) async throws -> String {
+        let context = [
+            "oracleResponse": oracleResponse,
+            "houseResponse": houseResponse
+        ]
+        
+        // Simplified prompt without conversation history to focus on risk assessment
         let prompt = """
-        You are assessing risks and constraints within an ongoing conversation. Consider how potential risks may have evolved or changed based on the conversation history.
+        You are the Prudence agent, focused on risk assessment and boundary management.
         
-        Previous conversation:
-        \(contextWithHistory["conversationHistory"] ?? "No prior context")
+        \(AgentPrompts.replacePlaceholders(AgentPrompts.prudencePrompt, context: context))
         
-        Current user input: \(contextWithHistory["currentInput"] ?? "")
-        
-        Oracle's strategic direction in context: \(strategy)
-        House's practical implementation plan: \(practical)
-        
-        Considering the complete conversation history and evolving context:
-        \(AgentPrompts.prudencePrompt)
+        Provide a detailed risk assessment, identifying specific concerns and potential mitigation strategies.
         """
         return try await openAI.generateCompletion(prompt: prompt, temperature: temperature)
     }
     
     private func processConscience(_ contextWithHistory: [String: String], prudenceResponse: String, temperature: Double) async throws -> String {
+        let context = [
+            "userInput": contextWithHistory["userInput"] ?? "",
+            "prudenceResponse": prudenceResponse
+        ]
+        
         let prompt = """
-        You are providing ethical oversight within an ongoing conversation. Consider how moral implications may have developed or shifted throughout the discussion.
+        You are the Conscience agent, providing ethical oversight and moral judgment.
         
         Previous conversation:
         \(contextWithHistory["conversationHistory"] ?? "No prior context")
         
-        Current user input: \(contextWithHistory["currentInput"] ?? "")
+        Current user input: \(contextWithHistory["userInput"] ?? "")
         
-        Prudence's risk assessment in context: \(prudenceResponse)
+        \(AgentPrompts.replacePlaceholders(AgentPrompts.consciencePrompt, context: context))
         
-        Taking into account the ethical trajectory of the entire conversation:
-        \(AgentPrompts.consciencePrompt)
+        Focus on the ethical implications of the proposed approach, considering all stakeholders that might be impacted.
         """
         return try await openAI.generateCompletion(prompt: prompt, temperature: temperature)
     }
     
     private func integrateResponses(_ responses: [String: String]) async throws -> String {
         let prompt = """
-        You are integrating multiple perspectives on an ongoing conversation. Your task is to synthesize these viewpoints while maintaining consistency with the conversation's history and development.
+        You are integrating multiple perspectives into a coherent response to the user's question.
         
-        Consider how the following agent responses build upon and relate to each other, and how they collectively address the current situation in the context of the ongoing discussion.
+        \(AgentPrompts.replacePlaceholders(AgentPrompts.integrationPrompt, context: responses))
         
-        Agent Responses:
-        \(responses.map { "[\($0.key)]: \($0.value)" }.joined(separator: "\n\n"))
-        
-        Create a coherent, contextually-aware response that:
-        1. Builds upon previous exchanges in the conversation
-        2. Maintains consistency with established context
-        3. Integrates all agent perspectives
-        4. Provides clear, actionable insights
-        5. Acknowledges the conversation's evolution
-        
-        \(AgentPrompts.integrationPrompt)
+        Create a balanced response that directly addresses the user's question while incorporating the key insights from each agent.
         """
         return try await openAI.generateCompletion(prompt: prompt, temperature: 0.4)
     }
     
     private func analyzeEmotionalState(_ responses: [String: String], contextWithHistory: [String: String]) async throws -> String {
         let prompt = """
-        You are analyzing the emotional and cognitive state of an AI system within an ongoing conversation. Consider both the current responses and how emotions have evolved throughout the discussion.
-        
-        Previous conversation context:
-        \(contextWithHistory["conversationHistory"] ?? "No prior context")
+        You are analyzing the emotional and cognitive state of an AI system.
         
         Current interaction - AI system's internal dialogue:
-        \(responses.map { "[\($0.key)]: \($0.value)" }.joined(separator: "\n"))
+        Cortex (Emotional Processing): \(responses["cortexResponse"] ?? "")
+        Seer (Pattern Recognition): \(responses["seerResponse"] ?? "")
+        Oracle (Strategic Analysis): \(responses["oracleResponse"] ?? "")
+        House (Practical Implementation): \(responses["houseResponse"] ?? "")
+        Prudence (Risk Assessment): \(responses["prudenceResponse"] ?? "")
+        Conscience (Ethical Evaluation): \(responses["conscienceResponse"] ?? "")
         
         Analyze the emotional and cognitive state, considering:
-        1. How emotions have evolved from previous interactions
-        2. Current emotional responses to the latest input
-        3. The overall emotional trajectory of the conversation
-        4. How cognitive states are adapting to the conversation flow
-        5. The balance between emotional and analytical processing
+        1. Current emotional responses to the latest input
+        2. The balance between emotional and analytical processing
         
-        Consider these categories, expressing each as a percentage that reflects both current state and emotional trajectory. 
+        Consider these categories, expressing each as a percentage that reflects the current state. 
         The total across ALL states must add up to exactly 100%.
 
         Primary Emotions (immediate responses):
@@ -455,7 +491,7 @@ class MindSystem {
         - Surprise (astonishment, wonder)
         - Disgust (aversion, distaste)
 
-        Complex Emotional States (developed through conversation):
+        Complex Emotional States (developed responses):
         - Anxiety (worry, unease)
         - Hope (optimism, anticipation)
         - Pride (satisfaction, accomplishment)
@@ -491,20 +527,20 @@ class MindSystem {
         - Synthesizing (integrating ideas)
         - Mindful (present awareness)
 
-        Express the system's current emotional and cognitive state as percentages, considering both the immediate state and its evolution through the conversation. 
+        Express the system's current emotional and cognitive state as percentages. 
         List only states with non-zero percentages, each on its own line.
-        Add a brief note about significant emotional shifts or patterns when relevant.
+        Add a brief note about significant patterns when relevant.
 
         Example format:
-        30% Analytical (increased from previous analytical stance)
-        20% Curiosity (consistent engagement level)
-        15% Fear (decreased as understanding grew)
-        10% Hope (emerging from conversation progress)
-        10% Focus (maintained throughout)
-        8% Empathetic (developing with context)
-        7% Determination (strengthening)
+        30% Analytical
+        20% Curiosity
+        15% Fear
+        10% Hope
+        10% Focus
+        8% Empathetic
+        7% Determination
         
-        Emotional Evolution Note: The system has shown a gradual shift from uncertainty to confident engagement, while maintaining analytical rigor.
+        Emotional Note: [Brief observation about the overall emotional state]
         """
         
         return try await openAI.generateCompletion(prompt: prompt, temperature: 0.7)
@@ -582,4 +618,4 @@ class MindSystem {
             Effectiveness: \(String(format: "%.1f", effectiveness.percentage))% - \(effectiveness.rating)
             """
     }
-} 
+}

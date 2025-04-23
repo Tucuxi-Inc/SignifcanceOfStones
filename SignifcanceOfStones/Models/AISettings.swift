@@ -69,10 +69,12 @@ extension AISettings {
 // MARK: - Configuration Constants
 extension AISettings {
     enum Model {
-        static let defaultModel = "gpt-4o-mini"
+        static let defaultModel = "gpt-4.1-mini"
         static let availableModels = [
-            "gpt-4o-mini",
-            "gpt-4o"
+            "gpt-4.1-mini",
+            "gpt-4.1-nano",
+            "gpt-4.1",
+            "gpt-4o-mini"
         ]
     }
     
