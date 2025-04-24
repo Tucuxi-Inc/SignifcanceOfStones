@@ -6,5 +6,9 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to enable voice input for AI prompts</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We need speech recognition permission to convert your voice to text for AI prompts</string>
 </dict>
 </plist>

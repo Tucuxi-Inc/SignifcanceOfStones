@@ -87,6 +87,7 @@ extension AISettings {
             .oracle: 0.3,
             .house: 0.4,
             .prudence: 0.3,
+            .dayDream: 0.8,
             .conscience: 0.6
         ]
     }

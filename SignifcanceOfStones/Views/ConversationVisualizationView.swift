@@ -123,6 +123,7 @@ struct EmotionalTrendsChart: View {
 
 struct TemperatureVariationChart: View {
     let chat: Chat
+    @State private var selectedAgents: Set<AgentType> = Set(AgentType.allCases)
     
     struct TemperatureDataPoint: Identifiable {
         let id = UUID()
@@ -167,16 +168,49 @@ struct TemperatureVariationChart: View {
                 ),
                 TemperatureDataPoint(
                     timestamp: analysis.timestamp,
+                    agentType: .dayDream,
+                    temperature: analysis.nextTemperatures.dayDream,
+                    effectiveness: calculateEffectiveness(analysis.nextTemperatures.dayDream, for: .dayDream)
+                ),
+                TemperatureDataPoint(
+                    timestamp: analysis.timestamp,
                     agentType: .conscience,
                     temperature: analysis.nextTemperatures.conscience,
                     effectiveness: calculateEffectiveness(analysis.nextTemperatures.conscience, for: .conscience)
                 )
             ]
+            .filter { selectedAgents.contains($0.agentType) }
         }
     }
     
     var body: some View {
         VStack(spacing: 20) {
+            // Agent Filter
+            VStack(alignment: .leading) {
+                Text("Filter Agents")
+                    .font(.headline)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(AgentType.allCases, id: \.self) { agentType in
+                            Toggle(agentType.rawValue, isOn: Binding(
+                                get: { selectedAgents.contains(agentType) },
+                                set: { isSelected in
+                                    if isSelected {
+                                        selectedAgents.insert(agentType)
+                                    } else {
+                                        selectedAgents.remove(agentType)
+                                    }
+                                }
+                            ))
+                            .toggleStyle(.button)
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal)
+            
             VStack(alignment: .leading) {
                 Text("Temperature Settings")
                     .font(.headline)
@@ -186,12 +220,15 @@ struct TemperatureVariationChart: View {
                         y: .value("Temperature", dataPoint.temperature)
                     )
                     .foregroundStyle(by: .value("Agent", dataPoint.agentType.rawValue))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
                     
                     PointMark(
                         x: .value("Time", dataPoint.timestamp),
                         y: .value("Temperature", dataPoint.temperature)
                     )
                     .foregroundStyle(by: .value("Agent", dataPoint.agentType.rawValue))
+                    .symbolSize(60)
+                    .symbol(.circle)
                 }
                 .chartLegend(position: .bottom, alignment: .center)
                 .chartYScale(domain: 0...1)
@@ -216,12 +253,15 @@ struct TemperatureVariationChart: View {
                         y: .value("Effectiveness", dataPoint.effectiveness)
                     )
                     .foregroundStyle(by: .value("Agent", dataPoint.agentType.rawValue))
+                    .lineStyle(StrokeStyle(lineWidth: 2))
                     
                     PointMark(
                         x: .value("Time", dataPoint.timestamp),
                         y: .value("Effectiveness", dataPoint.effectiveness)
                     )
                     .foregroundStyle(by: .value("Agent", dataPoint.agentType.rawValue))
+                    .symbolSize(60)
+                    .symbol(.circle)
                 }
                 .chartLegend(position: .bottom, alignment: .center)
                 .chartYScale(domain: 0...100)
@@ -247,6 +287,7 @@ struct TemperatureVariationChart: View {
             .oracle: (0.3, 0.5),     // Strategic thinking
             .house: (0.3, 0.5),      // Practical implementation
             .prudence: (0.2, 0.4),   // Risk assessment
+            .dayDream: (0.7, 0.9),   // Creative associations
             .conscience: (0.4, 0.6)   // Moral judgment
         ]
         
@@ -305,6 +346,7 @@ private func createPreviewContainer() -> (ModelContainer, Chat) {
                 oracle: Double.random(in: 0.3...0.7),
                 house: Double.random(in: 0.3...0.7),
                 prudence: Double.random(in: 0.2...0.6),
+                dayDream: Double.random(in: 0.7...0.9),
                 conscience: Double.random(in: 0.3...0.7)
             )
         )

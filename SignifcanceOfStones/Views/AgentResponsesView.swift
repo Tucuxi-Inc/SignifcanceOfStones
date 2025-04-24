@@ -129,6 +129,7 @@ struct AgentResponseDetailView: View {
         case .house: return "house"
         case .prudence: return "exclamationmark.shield"
         case .conscience: return "heart.circle"
+        case .dayDream: return "wand.and.stars"
         }
     }
 }
@@ -143,6 +144,7 @@ struct TemperatureSettingsView: View {
             TemperatureRow(label: "Oracle", value: settings.oracle)
             TemperatureRow(label: "House", value: settings.house)
             TemperatureRow(label: "Prudence", value: settings.prudence)
+            TemperatureRow(label: "Day-Dream", value: settings.dayDream)
             TemperatureRow(label: "Conscience", value: settings.conscience)
         }
     }
@@ -194,6 +196,7 @@ private func createPreviewContainer() -> ModelContainer {
             oracle: 0.5,
             house: 0.5,
             prudence: 0.3,
+            dayDream: 0.8,
             conscience: 0.6
         )
     )
