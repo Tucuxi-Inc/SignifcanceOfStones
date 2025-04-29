@@ -41,14 +41,28 @@ struct ChatAnalysisListView: View {
             Section("Prompts") {
                 ForEach(chat.messages?.sorted(by: { $0.timestamp < $1.timestamp })
                     .filter { $0.role == .user } ?? []) { message in
-                        if let analysis = findAnalysis(for: message) {
-                            NavigationLink {
-                                AgentResponseDetailView(analysis: analysis)
+                        let analyses = findAnalyses(for: message)
+                        if !analyses.isEmpty {
+                            DisclosureGroup {
+                                ForEach(analyses) { analysis in
+                                    NavigationLink {
+                                        AgentResponseDetailView(analysis: analysis)
+                                    } label: {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Analysis from \(analysis.timestamp.formatted())")
+                                                .font(.subheadline)
+                                            Text("Agents: \(analysis.agentResponses?.count ?? 0)")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .padding(.vertical, 4)
+                                    }
+                                }
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(message.content)
                                         .lineLimit(2)
-                                    Text(message.timestamp.formatted())
+                                    Text("\(analyses.count) analysis results")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -65,6 +79,10 @@ struct ChatAnalysisListView: View {
     private func findAnalysis(for message: ChatMessage) -> ChatAnalysis? {
         return chat.analyses?.first { $0.userMessageId == message.id }
     }
+    
+    private func findAnalyses(for message: ChatMessage) -> [ChatAnalysis] {
+        return chat.analyses?.filter { $0.userMessageId == message.id } ?? []
+    }
 }
 
 struct AgentResponseDetailView: View {
@@ -75,6 +93,18 @@ struct AgentResponseDetailView: View {
             Section("User Input") {
                 Text(analysis.userInput)
                     .textSelection(.enabled)
+                    .contextMenu {
+                        Button(action: {
+                            UIPasteboard.general.string = analysis.userInput
+                        }) {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                        
+                        ShareLink(
+                            item: analysis.userInput,
+                            preview: SharePreview("User Input")
+                        )
+                    }
             }
             
             Section("Agent Responses") {
@@ -83,6 +113,18 @@ struct AgentResponseDetailView: View {
                         Text(response.response)
                             .textSelection(.enabled)
                             .padding(.vertical, 8)
+                            .contextMenu {
+                                Button(action: {
+                                    UIPasteboard.general.string = response.response
+                                }) {
+                                    Label("Copy", systemImage: "doc.on.doc")
+                                }
+                                
+                                ShareLink(
+                                    item: response.response,
+                                    preview: SharePreview("\(response.agentType.rawValue) Response")
+                                )
+                            }
                     } label: {
                         HStack {
                             Label(
@@ -115,10 +157,64 @@ struct AgentResponseDetailView: View {
             Section("Final Response") {
                 Text(analysis.finalResponse)
                     .textSelection(.enabled)
+                    .contextMenu {
+                        Button(action: {
+                            UIPasteboard.general.string = analysis.finalResponse
+                        }) {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                        
+                        ShareLink(
+                            item: analysis.finalResponse,
+                            preview: SharePreview("Final Response")
+                        )
+                    }
             }
         }
         .navigationTitle("Analysis Details")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: {
+                        UIPasteboard.general.string = completeAnalysisText()
+                    }) {
+                        Label("Copy All", systemImage: "doc.on.doc")
+                    }
+                    
+                    ShareLink(
+                        item: completeAnalysisText(),
+                        preview: SharePreview("Complete Analysis")
+                    )
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
+    }
+    
+    private func completeAnalysisText() -> String {
+        let agentResponsesText = (analysis.agentResponses?.sorted(by: { $0.timestamp < $1.timestamp }) ?? [])
+            .map { "--- \($0.agentType.rawValue) Agent ---\n\($0.response)" }
+            .joined(separator: "\n\n")
+            
+        let emotionalStateText = (analysis.emotionalState ?? [])
+            .map { "\($0.emotion): \(Int($0.percentage))%" }
+            .joined(separator: "\n")
+            
+        return """
+        USER INPUT:
+        \(analysis.userInput)
+        
+        AGENT RESPONSES:
+        \(agentResponsesText)
+        
+        EMOTIONAL STATE:
+        \(emotionalStateText)
+        
+        FINAL RESPONSE:
+        \(analysis.finalResponse)
+        """
     }
     
     private func iconFor(agentType: AgentType) -> String {

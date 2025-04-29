@@ -333,9 +333,9 @@ struct MindChatView: View {
                 // MICROPHONE BUTTON - SIMPLIFIED
                 Button {
                     // Direct action without complex state management
-                    if viewModel.speechRecognizer.isRecording {
-                        viewModel.speechRecognizer.stopRecording()
-                    } else {
+                if viewModel.speechRecognizer.isRecording {
+                            viewModel.speechRecognizer.stopRecording()
+                } else {
                         viewModel.speechRecognizer.startRecording()
                     }
                 } label: {
@@ -349,8 +349,8 @@ struct MindChatView: View {
                             .font(.title3)
                             .foregroundColor(viewModel.speechRecognizer.isRecording ? .white : .blue)
                     }
-                }
-                .padding(.leading, 8)
+                    }
+                    .padding(.leading, 8)
                 
                 // STANDARD TEXT FIELD
                 TextField("Type a message...", text: $viewModel.userInput)

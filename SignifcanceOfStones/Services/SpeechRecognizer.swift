@@ -102,8 +102,8 @@ class SpeechRecognizer: NSObject, SFSpeechRecognizerDelegate, ObservableObject {
             let lines = self.debugInfo.components(separatedBy: "\n")
             if lines.count > 15 {
                 self.debugInfo = lines.suffix(15).joined(separator: "\n")
+                }
             }
-        }
     }
     
     private func checkInitialPermissions() {
@@ -259,7 +259,7 @@ class SpeechRecognizer: NSObject, SFSpeechRecognizerDelegate, ObservableObject {
                   let speechRecognizer = self.speechRecognizer, speechRecognizer.isAvailable else {
                 self.updateDebugInfo("Speech recognition not available")
                 DispatchQueue.main.async {
-                    self.error = NSError(domain: "SpeechRecognizer", code: 1, userInfo: [NSLocalizedDescriptionKey: "Speech recognition not available"])
+                self.error = NSError(domain: "SpeechRecognizer", code: 1, userInfo: [NSLocalizedDescriptionKey: "Speech recognition not available"])
                     self.audioEngineStatus = "Not available"
                     self.recognitionStatus = "Not available"
                     self.isRecording = false
@@ -349,7 +349,7 @@ class SpeechRecognizer: NSObject, SFSpeechRecognizerDelegate, ObservableObject {
                 inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
                     // Check if we're still recording and have a valid request
                     if self.isRecording && self.recognitionRequest != nil {
-                        self.recognitionRequest?.append(buffer)
+                    self.recognitionRequest?.append(buffer)
                     }
                 }
                 

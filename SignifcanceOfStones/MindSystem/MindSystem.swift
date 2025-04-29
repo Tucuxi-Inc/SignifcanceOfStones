@@ -334,7 +334,7 @@ class MindSystem {
             
             // Create and store analysis
             let analysis = ChatAnalysis(
-                userMessageId: chat.messages?.last?.id ?? UUID(),
+                userMessageId: chat.messages?.last(where: { $0.role == .user })?.id ?? UUID(),
                 userInput: input,
                 finalResponse: integrated,
                 nextTemperatures: TemperatureSettings(
