@@ -35,6 +35,7 @@ struct TemperatureSettings: Codable {
     var oracle: Double
     var house: Double
     var prudence: Double
+    var dayDream: Double
     var conscience: Double
     
     init(
@@ -43,6 +44,7 @@ struct TemperatureSettings: Codable {
         oracle: Double = 0.0,
         house: Double = 0.0,
         prudence: Double = 0.0,
+        dayDream: Double = 0.0,
         conscience: Double = 0.0
     ) {
         self.cortex = cortex
@@ -50,7 +52,34 @@ struct TemperatureSettings: Codable {
         self.oracle = oracle
         self.house = house
         self.prudence = prudence
+        self.dayDream = dayDream
         self.conscience = conscience
+    }
+    
+    // Helper method to get a temperature for a specific agent type
+    func get(for agentType: AgentType) -> Double {
+        switch agentType {
+        case .cortex: return cortex
+        case .seer: return seer
+        case .oracle: return oracle
+        case .house: return house
+        case .prudence: return prudence
+        case .dayDream: return dayDream
+        case .conscience: return conscience
+        }
+    }
+    
+    // Helper method to set a temperature for a specific agent type
+    mutating func set(temperature: Double, for agentType: AgentType) {
+        switch agentType {
+        case .cortex: cortex = temperature
+        case .seer: seer = temperature
+        case .oracle: oracle = temperature
+        case .house: house = temperature
+        case .prudence: prudence = temperature
+        case .dayDream: dayDream = temperature
+        case .conscience: conscience = temperature
+        }
     }
 }
 

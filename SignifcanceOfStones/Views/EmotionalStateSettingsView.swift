@@ -138,6 +138,7 @@ struct EmotionalStateSettingsView: View {
                 oracle: agentSettings.first(where: { $0.agentType == .oracle })?.temperature ?? EmotionalTemperature.baselineTemperatures.oracle,
                 house: agentSettings.first(where: { $0.agentType == .house })?.temperature ?? EmotionalTemperature.baselineTemperatures.house,
                 prudence: agentSettings.first(where: { $0.agentType == .prudence })?.temperature ?? EmotionalTemperature.baselineTemperatures.prudence,
+                dayDream: agentSettings.first(where: { $0.agentType == .dayDream })?.temperature ?? EmotionalTemperature.baselineTemperatures.dayDream,
                 conscience: agentSettings.first(where: { $0.agentType == .conscience })?.temperature ?? EmotionalTemperature.baselineTemperatures.conscience
             )
             emotionalState.currentTemperatures = EmotionalTemperatures(from: tuple)
@@ -152,6 +153,7 @@ struct EmotionalStateSettingsView: View {
         case .oracle: return temps.oracle
         case .house: return temps.house
         case .prudence: return temps.prudence
+        case .dayDream: return temps.dayDream
         case .conscience: return temps.conscience
         }
     }
@@ -252,6 +254,7 @@ struct ProcessingImpactView: View {
             ("Oracle", getImpactDescription(for: AgentType.oracle, value: temps.oracle)),
             ("House", getImpactDescription(for: AgentType.house, value: temps.house)),
             ("Prudence", getImpactDescription(for: AgentType.prudence, value: temps.prudence)),
+            ("Day-Dream", getImpactDescription(for: AgentType.dayDream, value: temps.dayDream)),
             ("Conscience", getImpactDescription(for: AgentType.conscience, value: temps.conscience))
         ]
     }

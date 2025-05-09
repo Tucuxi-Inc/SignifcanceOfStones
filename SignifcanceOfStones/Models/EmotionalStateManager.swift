@@ -6,21 +6,23 @@ struct EmotionalTemperatures: Equatable {
     var oracle: Double
     var house: Double
     var prudence: Double
+    var dayDream: Double
     var conscience: Double
     
     // Add initializer to convert from tuple
-    init(from tuple: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, conscience: Double)) {
+    init(from tuple: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, dayDream: Double, conscience: Double)) {
         self.cortex = tuple.cortex
         self.seer = tuple.seer
         self.oracle = tuple.oracle
         self.house = tuple.house
         self.prudence = tuple.prudence
+        self.dayDream = tuple.dayDream
         self.conscience = tuple.conscience
     }
     
     // Add conversion to tuple
-    var asTuple: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, conscience: Double) {
-        return (cortex: cortex, seer: seer, oracle: oracle, house: house, prudence: prudence, conscience: conscience)
+    var asTuple: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, dayDream: Double, conscience: Double) {
+        return (cortex: cortex, seer: seer, oracle: oracle, house: house, prudence: prudence, dayDream: dayDream, conscience: conscience)
     }
 }
 

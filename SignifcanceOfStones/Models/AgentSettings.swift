@@ -27,6 +27,7 @@ enum AgentType: String, CaseIterable, Codable, Identifiable, Comparable {
     case oracle = "Oracle"
     case house = "House"
     case prudence = "Prudence"
+    case dayDream = "Day-Dream"
     case conscience = "Conscience"
     
     var id: String { rawValue }
@@ -38,6 +39,7 @@ enum AgentType: String, CaseIterable, Codable, Identifiable, Comparable {
             .oracle,
             .house,
             .prudence,
+            .dayDream,
             .conscience
         ]
         
@@ -58,6 +60,7 @@ enum AgentType: String, CaseIterable, Codable, Identifiable, Comparable {
         case .oracle: return "🔮"
         case .house: return "🏛️"
         case .prudence: return "⚖️"
+        case .dayDream: return "💭"
         case .conscience: return "🤔"
         }
     }
@@ -69,6 +72,7 @@ enum AgentType: String, CaseIterable, Codable, Identifiable, Comparable {
         case .oracle: return "Strategic thinking and future planning"
         case .house: return "Implementation and practical execution"
         case .prudence: return "Risk assessment and caution level"
+        case .dayDream: return "Creative associations and memory exploration"
         case .conscience: return "Ethical consideration and moral awareness"
         }
     }
@@ -80,6 +84,7 @@ enum AgentType: String, CaseIterable, Codable, Identifiable, Comparable {
         case .oracle: return 0.3
         case .house: return 0.4
         case .prudence: return 0.3
+        case .dayDream: return 0.8
         case .conscience: return 0.6
         }
     }

@@ -16,6 +16,7 @@ struct EmotionalTemperature {
         oracle: 0.4,    // Conservative strategy formation
         house: 0.4,     // Careful implementation planning
         prudence: 0.3,  // Alert risk assessment
+        dayDream: 0.8,  // Higher temperature for creative associations
         conscience: 0.5  // Balanced moral judgment
     )
     
@@ -23,7 +24,7 @@ struct EmotionalTemperature {
     /// - Parameters:
     ///   - emotions: Array of tuples containing emotion strings and their intensity percentages
     /// - Returns: Weighted average temperatures based on emotional state percentages
-    static func calculateBlendedTemperatures(_ emotions: [(String, Double)]) -> (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, conscience: Double) {
+    static func calculateBlendedTemperatures(_ emotions: [(String, Double)]) -> (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, dayDream: Double, conscience: Double) {
         print("\n📊 Calculating blended temperatures for \(emotions.count) emotions:")
         
         // Initialize accumulators for each temperature
@@ -33,6 +34,7 @@ struct EmotionalTemperature {
             oracle: 0.0,
             house: 0.0,
             prudence: 0.0,
+            dayDream: 0.0,
             conscience: 0.0
         )
         
@@ -50,6 +52,7 @@ struct EmotionalTemperature {
             blendedTemps.oracle += emotionTemps.oracle * weight
             blendedTemps.house += emotionTemps.house * weight
             blendedTemps.prudence += emotionTemps.prudence * weight
+            blendedTemps.dayDream += emotionTemps.dayDream * weight
             blendedTemps.conscience += emotionTemps.conscience * weight
         }
         
@@ -68,8 +71,9 @@ struct EmotionalTemperature {
     /// - Oracle: Higher = expansive strategic thinking, Lower = conservative planning
     /// - House: Higher = flexible implementation, Lower = careful/precise execution
     /// - Prudence: Higher = increased risk awareness, Lower = more accepting of risk
+    /// - Day-Dream: Higher = enhanced creative associations, Lower = more logical connections
     /// - Conscience: Higher = heightened ethical consideration, Lower = pragmatic focus
-    public static func getEmotionTemperatures(_ emotion: String) -> (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, conscience: Double) {
+    public static func getEmotionTemperatures(_ emotion: String) -> (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, dayDream: Double, conscience: Double) {
         let lowercased = emotion.lowercased()
         
         /// Primary Emotions: These represent fundamental emotional responses
@@ -83,7 +87,7 @@ struct EmotionalTemperature {
             // - Moderate house: Maintains practical grounding
             // - Low prudence: Reduces excessive caution
             // - Moderate conscience: Balanced ethical consideration
-            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.6, prudence: 0.4, conscience: 0.6)
+            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.6, prudence: 0.4, dayDream: 0.9, conscience: 0.6)
             
         case lowercased.contains("sadness"), lowercased.contains("sorrow"), lowercased.contains("melancholy"):
             // Sadness promotes careful reflection and ethical consideration
@@ -93,7 +97,7 @@ struct EmotionalTemperature {
             // - Low house: Cautious implementation
             // - High prudence: Enhanced risk awareness
             // - High conscience: Increased ethical sensitivity
-            return (cortex: 0.5, seer: 0.3, oracle: 0.4, house: 0.4, prudence: 0.6, conscience: 0.7)
+            return (cortex: 0.5, seer: 0.3, oracle: 0.4, house: 0.4, prudence: 0.6, dayDream: 0.7, conscience: 0.7)
             
         case lowercased.contains("fear"), lowercased.contains("terror"), lowercased.contains("dread"):
             // Fear heightens caution and risk assessment
@@ -103,7 +107,7 @@ struct EmotionalTemperature {
             // - Low house: Very careful implementation
             // - Very high prudence: Maximum risk awareness
             // - High conscience: Enhanced survival ethics
-            return (cortex: 0.4, seer: 0.3, oracle: 0.4, house: 0.3, prudence: 0.8, conscience: 0.6)
+            return (cortex: 0.4, seer: 0.3, oracle: 0.4, house: 0.3, prudence: 0.8, dayDream: 0.6, conscience: 0.6)
             
         case lowercased.contains("anger"), lowercased.contains("rage"), lowercased.contains("fury"):
             // Anger increases analytical focus but may impair strategic thinking
@@ -113,7 +117,7 @@ struct EmotionalTemperature {
             // - Low house: Careful implementation needed
             // - High prudence: Enhanced threat assessment
             // - Moderate conscience: Balanced moral consideration
-            return (cortex: 0.8, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.7, conscience: 0.6)
+            return (cortex: 0.8, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.7, dayDream: 0.7, conscience: 0.6)
             
         case lowercased.contains("surprise"), lowercased.contains("astonishment"), lowercased.contains("amazement"):
             // Surprise enhances pattern recognition and reduces rigid thinking
@@ -123,7 +127,7 @@ struct EmotionalTemperature {
             // - Moderate house: Flexible implementation
             // - Low prudence: Reduced risk aversion
             // - Moderate conscience: Standard ethical processing
-            return (cortex: 0.7, seer: 0.8, oracle: 0.6, house: 0.5, prudence: 0.4, conscience: 0.5)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.6, house: 0.5, prudence: 0.4, dayDream: 0.9, conscience: 0.5)
             
         case lowercased.contains("disgust"), lowercased.contains("revulsion"), lowercased.contains("aversion"):
             // Disgust heightens moral judgment and risk assessment
@@ -133,7 +137,7 @@ struct EmotionalTemperature {
             // - Low house: Cautious implementation
             // - High prudence: Enhanced risk awareness
             // - Very high conscience: Heightened moral sensitivity
-            return (cortex: 0.6, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.7, conscience: 0.8)
+            return (cortex: 0.6, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.7, dayDream: 0.5, conscience: 0.8)
             
         case lowercased.contains("anticipation"), lowercased.contains("expectancy"):
             // Anticipation enhances future-oriented thinking and pattern recognition
@@ -143,7 +147,7 @@ struct EmotionalTemperature {
             // - Moderate house: Balanced implementation focus
             // - Moderate prudence: Balanced risk assessment
             // - Moderate conscience: Standard ethical processing
-            return (cortex: 0.7, seer: 0.8, oracle: 0.8, house: 0.6, prudence: 0.5, conscience: 0.5)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.8, house: 0.6, prudence: 0.5, dayDream: 0.8, conscience: 0.5)
             
         case lowercased.contains("trust"), lowercased.contains("acceptance"):
             // Trust promotes balanced processing with reduced risk aversion
@@ -153,7 +157,7 @@ struct EmotionalTemperature {
             // - High house: Confident implementation
             // - Low prudence: Reduced risk aversion
             // - High conscience: Enhanced ethical consideration
-            return (cortex: 0.6, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.4, conscience: 0.7)
+            return (cortex: 0.6, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.4, dayDream: 0.7, conscience: 0.7)
 
         /// Complex Emotions: These represent more nuanced emotional states
         /// that often combine multiple primary emotions and cognitive elements
@@ -165,7 +169,7 @@ struct EmotionalTemperature {
             // - Low house: Careful implementation
             // - High prudence: Enhanced risk assessment
             // - Moderate conscience: Balanced ethical consideration
-            return (cortex: 0.5, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.8, conscience: 0.6)
+            return (cortex: 0.5, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.8, dayDream: 0.5, conscience: 0.6)
             
         case lowercased.contains("hope"), lowercased.contains("optimism"):
             // Hope enhances creative thinking and future-oriented processing
@@ -175,7 +179,7 @@ struct EmotionalTemperature {
             // - High house: Confident implementation
             // - Low prudence: Reduced risk aversion
             // - Moderate conscience: Balanced ethical consideration
-            return (cortex: 0.7, seer: 0.8, oracle: 0.8, house: 0.7, prudence: 0.4, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.8, house: 0.7, prudence: 0.4, dayDream: 0.8, conscience: 0.6)
             
         case lowercased.contains("pride"), lowercased.contains("satisfaction"):
             // Pride promotes confident processing but may reduce caution
@@ -185,7 +189,7 @@ struct EmotionalTemperature {
             // - High house: Confident implementation
             // - Low prudence: Reduced risk sensitivity
             // - Moderate conscience: Standard ethical consideration
-            return (cortex: 0.7, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.4, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.4, dayDream: 0.7, conscience: 0.6)
             
         case lowercased.contains("shame"), lowercased.contains("embarrassment"):
             // Shame reduces cognitive confidence but increases caution
@@ -195,7 +199,7 @@ struct EmotionalTemperature {
             // - Low house: Cautious implementation
             // - High prudence: Enhanced risk sensitivity
             // - Very high conscience: Heightened moral awareness
-            return (cortex: 0.4, seer: 0.3, oracle: 0.4, house: 0.3, prudence: 0.7, conscience: 0.8)
+            return (cortex: 0.4, seer: 0.3, oracle: 0.4, house: 0.3, prudence: 0.7, dayDream: 0.5, conscience: 0.8)
             
         case lowercased.contains("guilt"), lowercased.contains("remorse"):
             // Guilt maximizes ethical consideration and careful processing
@@ -205,7 +209,7 @@ struct EmotionalTemperature {
             // - Low house: Careful implementation
             // - High prudence: Enhanced risk awareness
             // - Very high conscience: Maximum moral consideration
-            return (cortex: 0.4, seer: 0.4, oracle: 0.4, house: 0.4, prudence: 0.7, conscience: 0.9)
+            return (cortex: 0.4, seer: 0.4, oracle: 0.4, house: 0.4, prudence: 0.7, dayDream: 0.4, conscience: 0.9)
             
         case lowercased.contains("envy"), lowercased.contains("jealousy"):
             // Envy combines analytical focus with heightened moral consideration
@@ -215,7 +219,7 @@ struct EmotionalTemperature {
             // - Low house: Cautious implementation
             // - High prudence: Enhanced risk sensitivity
             // - Very high conscience: Heightened moral awareness
-            return (cortex: 0.6, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.7, conscience: 0.8)
+            return (cortex: 0.6, seer: 0.4, oracle: 0.5, house: 0.4, prudence: 0.7, dayDream: 0.6, conscience: 0.8)
             
         case lowercased.contains("love"), lowercased.contains("affection"):
             // Love enhances both cognitive and ethical processing
@@ -225,7 +229,7 @@ struct EmotionalTemperature {
             // - Moderate house: Balanced implementation
             // - Low prudence: Reduced risk aversion
             // - Very high conscience: Enhanced ethical consideration
-            return (cortex: 0.7, seer: 0.7, oracle: 0.6, house: 0.6, prudence: 0.4, conscience: 0.8)
+            return (cortex: 0.7, seer: 0.7, oracle: 0.6, house: 0.6, prudence: 0.4, dayDream: 0.8, conscience: 0.8)
             
         case lowercased.contains("grief"), lowercased.contains("despair"):
             // Grief significantly reduces cognitive processing but heightens moral awareness
@@ -235,7 +239,7 @@ struct EmotionalTemperature {
             // - Very low house: Minimal implementation capacity
             // - High prudence: Enhanced risk awareness
             // - Very high conscience: Heightened moral sensitivity
-            return (cortex: 0.3, seer: 0.3, oracle: 0.3, house: 0.3, prudence: 0.7, conscience: 0.8)
+            return (cortex: 0.3, seer: 0.3, oracle: 0.3, house: 0.3, prudence: 0.7, dayDream: 0.4, conscience: 0.8)
             
         case lowercased.contains("serenity"), lowercased.contains("tranquility"):
             // Serenity promotes balanced processing across all agents
@@ -245,7 +249,7 @@ struct EmotionalTemperature {
             // - Moderate house: Balanced implementation
             // - Moderate prudence: Balanced risk assessment
             // - High conscience: Enhanced ethical clarity
-            return (cortex: 0.6, seer: 0.6, oracle: 0.6, house: 0.6, prudence: 0.5, conscience: 0.7)
+            return (cortex: 0.6, seer: 0.6, oracle: 0.6, house: 0.6, prudence: 0.5, dayDream: 0.7, conscience: 0.7)
             
         case lowercased.contains("awe"), lowercased.contains("wonder"):
             // Awe enhances creative and ethical processing
@@ -255,7 +259,7 @@ struct EmotionalTemperature {
             // - Moderate house: Maintained practical focus
             // - Moderate prudence: Balanced risk assessment
             // - Very high conscience: Enhanced ethical awareness
-            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.5, conscience: 0.8)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.5, dayDream: 0.9, conscience: 0.8)
 
         /// Cognitive-Emotional States: These represent emotions that are closely tied
         /// to thinking processes and intellectual engagement
@@ -267,7 +271,7 @@ struct EmotionalTemperature {
             // - Moderate house: Maintains practical focus
             // - Low prudence: Reduces risk aversion
             // - Moderate conscience: Balanced ethical consideration
-            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.4, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.4, dayDream: 0.9, conscience: 0.6)
             
         case lowercased.contains("confusion"):
             // Confusion increases caution and reduces cognitive confidence
@@ -277,7 +281,7 @@ struct EmotionalTemperature {
             // - Low house: Hesitant implementation
             // - Very high prudence: Enhanced risk sensitivity
             // - Moderate conscience: Maintained ethical awareness
-            return (cortex: 0.4, seer: 0.3, oracle: 0.4, house: 0.3, prudence: 0.8, conscience: 0.6)
+            return (cortex: 0.4, seer: 0.3, oracle: 0.4, house: 0.3, prudence: 0.8, dayDream: 0.5, conscience: 0.6)
             
         case lowercased.contains("determination"):
             // Determination enhances goal-oriented processing and implementation
@@ -287,7 +291,7 @@ struct EmotionalTemperature {
             // - Very high house: Strong implementation drive
             // - Moderate prudence: Balanced risk assessment
             // - Moderate conscience: Maintained ethical consideration
-            return (cortex: 0.7, seer: 0.7, oracle: 0.8, house: 0.8, prudence: 0.6, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.7, oracle: 0.8, house: 0.8, prudence: 0.6, dayDream: 0.7, conscience: 0.6)
             
         case lowercased.contains("overwhelm"):
             // Overwhelm significantly reduces cognitive capacity but increases caution
@@ -297,7 +301,7 @@ struct EmotionalTemperature {
             // - Very low house: Impaired implementation
             // - Very high prudence: Maximum caution
             // - High conscience: Enhanced ethical sensitivity
-            return (cortex: 0.3, seer: 0.3, oracle: 0.3, house: 0.3, prudence: 0.8, conscience: 0.7)
+            return (cortex: 0.3, seer: 0.3, oracle: 0.3, house: 0.3, prudence: 0.8, dayDream: 0.3, conscience: 0.7)
             
         case lowercased.contains("focus"):
             // Focus maximizes analytical processing and implementation
@@ -307,7 +311,7 @@ struct EmotionalTemperature {
             // - High house: Efficient implementation
             // - Moderate prudence: Balanced risk assessment
             // - Moderate conscience: Maintained ethical awareness
-            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.6, conscience: 0.6)
+            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.6, dayDream: 0.6, conscience: 0.6)
             
         case lowercased.contains("doubt"):
             // Doubt increases caution and reduces confidence in processing
@@ -317,7 +321,7 @@ struct EmotionalTemperature {
             // - Low house: Hesitant implementation
             // - Very high prudence: Enhanced risk sensitivity
             // - High conscience: Heightened ethical consideration
-            return (cortex: 0.4, seer: 0.3, oracle: 0.3, house: 0.3, prudence: 0.8, conscience: 0.7)
+            return (cortex: 0.4, seer: 0.3, oracle: 0.3, house: 0.3, prudence: 0.8, dayDream: 0.4, conscience: 0.7)
             
         case lowercased.contains("confidence"):
             // Confidence enhances processing and implementation capabilities
@@ -327,7 +331,7 @@ struct EmotionalTemperature {
             // - High house: Assured implementation
             // - Low prudence: Reduced risk aversion
             // - Moderate conscience: Balanced ethical consideration
-            return (cortex: 0.7, seer: 0.7, oracle: 0.8, house: 0.7, prudence: 0.4, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.7, oracle: 0.8, house: 0.7, prudence: 0.4, dayDream: 0.8, conscience: 0.6)
             
         case lowercased.contains("inspiration"):
             // Inspiration maximizes creative and intuitive processing
@@ -337,7 +341,7 @@ struct EmotionalTemperature {
             // - High house: Enthusiastic implementation
             // - Low prudence: Embraces creative risk
             // - High conscience: Enhanced ethical awareness
-            return (cortex: 0.8, seer: 0.8, oracle: 0.7, house: 0.7, prudence: 0.4, conscience: 0.7)
+            return (cortex: 0.8, seer: 0.8, oracle: 0.7, house: 0.7, prudence: 0.4, dayDream: 0.9, conscience: 0.7)
             
         case lowercased.contains("clarity"), lowercased.contains("lucidity"):
             // Clarity optimizes all cognitive processes
@@ -347,7 +351,7 @@ struct EmotionalTemperature {
             // - High house: Precise implementation
             // - Moderate prudence: Balanced risk assessment
             // - Moderate conscience: Clear ethical judgment
-            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.6, conscience: 0.6)
+            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.6, dayDream: 0.7, conscience: 0.6)
             
         case lowercased.contains("uncertainty"), lowercased.contains("ambivalence"):
             // Uncertainty increases analysis while maintaining caution
@@ -357,7 +361,7 @@ struct EmotionalTemperature {
             // - Low house: Careful implementation
             // - Very high prudence: Maximum risk sensitivity
             // - Moderate conscience: Maintained ethical awareness
-            return (cortex: 0.7, seer: 0.4, oracle: 0.4, house: 0.4, prudence: 0.8, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.4, oracle: 0.4, house: 0.4, prudence: 0.8, dayDream: 0.6, conscience: 0.6)
 
         /// Processing States: These represent different modes of cognitive processing
         /// that directly influence how information is handled
@@ -369,7 +373,7 @@ struct EmotionalTemperature {
             // - High house: Careful implementation
             // - High prudence: Thorough risk assessment
             // - Moderate conscience: Balanced ethical consideration
-            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.7, conscience: 0.6)
+            return (cortex: 0.8, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.7, dayDream: 0.5, conscience: 0.6)
             
         case lowercased.contains("creative"):
             // Creative state maximizes innovative thinking and pattern recognition
@@ -379,7 +383,7 @@ struct EmotionalTemperature {
             // - High house: Flexible implementation
             // - Low prudence: Embraces creative risk
             // - Moderate conscience: Balanced ethical consideration
-            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.7, prudence: 0.4, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.7, prudence: 0.4, dayDream: 0.9, conscience: 0.6)
             
         case lowercased.contains("intuitive"):
             // Intuitive state enhances pattern recognition and ethical awareness
@@ -389,7 +393,7 @@ struct EmotionalTemperature {
             // - Moderate house: Flexible implementation
             // - Low prudence: Trusts intuitive judgment
             // - High conscience: Enhanced ethical intuition
-            return (cortex: 0.6, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.4, conscience: 0.7)
+            return (cortex: 0.6, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.4, dayDream: 0.8, conscience: 0.7)
             
         case lowercased.contains("contemplative"):
             // Contemplative state balances deep thinking with ethical consideration
@@ -399,7 +403,7 @@ struct EmotionalTemperature {
             // - Moderate house: Measured implementation
             // - Moderate prudence: Balanced risk assessment
             // - Very high conscience: Deep ethical reflection
-            return (cortex: 0.7, seer: 0.7, oracle: 0.7, house: 0.6, prudence: 0.6, conscience: 0.8)
+            return (cortex: 0.7, seer: 0.7, oracle: 0.7, house: 0.6, prudence: 0.6, dayDream: 0.7, conscience: 0.8)
             
         case lowercased.contains("systematic"):
             // Systematic state maximizes methodical processing and implementation
@@ -409,7 +413,7 @@ struct EmotionalTemperature {
             // - Very high house: Precise implementation
             // - High prudence: Thorough risk assessment
             // - Moderate conscience: Standard ethical consideration
-            return (cortex: 0.8, seer: 0.6, oracle: 0.7, house: 0.8, prudence: 0.7, conscience: 0.6)
+            return (cortex: 0.8, seer: 0.6, oracle: 0.7, house: 0.8, prudence: 0.7, dayDream: 0.5, conscience: 0.6)
             
         case lowercased.contains("abstract"):
             // Abstract state enhances high-level pattern recognition and conceptual thinking
@@ -419,7 +423,7 @@ struct EmotionalTemperature {
             // - Moderate house: Basic implementation focus
             // - Moderate prudence: Balanced risk assessment
             // - Moderate conscience: Standard ethical consideration
-            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.5, conscience: 0.6)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.5, dayDream: 0.8, conscience: 0.6)
             
         case lowercased.contains("empathetic"):
             // Empathetic state maximizes ethical consideration and emotional understanding
@@ -429,7 +433,7 @@ struct EmotionalTemperature {
             // - Moderate house: Careful implementation
             // - Low prudence: Reduced risk aversion for social connection
             // - Very high conscience: Maximum ethical sensitivity
-            return (cortex: 0.6, seer: 0.7, oracle: 0.6, house: 0.6, prudence: 0.4, conscience: 0.9)
+            return (cortex: 0.6, seer: 0.7, oracle: 0.6, house: 0.6, prudence: 0.4, dayDream: 0.7, conscience: 0.9)
             
         case lowercased.contains("critical"):
             // Critical state enhances analytical rigor and risk assessment
@@ -439,7 +443,7 @@ struct EmotionalTemperature {
             // - High house: Precise implementation
             // - Very high prudence: Enhanced risk detection
             // - High conscience: Thorough ethical evaluation
-            return (cortex: 0.8, seer: 0.6, oracle: 0.7, house: 0.7, prudence: 0.8, conscience: 0.7)
+            return (cortex: 0.8, seer: 0.6, oracle: 0.7, house: 0.7, prudence: 0.8, dayDream: 0.5, conscience: 0.7)
             
         case lowercased.contains("synthesizing"):
             // Synthesizing state maximizes integration of multiple perspectives
@@ -449,7 +453,7 @@ struct EmotionalTemperature {
             // - High house: Coordinated implementation
             // - Moderate prudence: Balanced risk assessment
             // - High conscience: Integrated ethical consideration
-            return (cortex: 0.8, seer: 0.8, oracle: 0.8, house: 0.7, prudence: 0.6, conscience: 0.7)
+            return (cortex: 0.8, seer: 0.8, oracle: 0.8, house: 0.7, prudence: 0.6, dayDream: 0.8, conscience: 0.7)
             
         case lowercased.contains("mindful"):
             // Mindful state promotes balanced, aware processing across all domains
@@ -459,7 +463,7 @@ struct EmotionalTemperature {
             // - High house: Intentional implementation
             // - Moderate prudence: Balanced risk awareness
             // - Very high conscience: Enhanced ethical awareness
-            return (cortex: 0.7, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.6, conscience: 0.8)
+            return (cortex: 0.7, seer: 0.7, oracle: 0.7, house: 0.7, prudence: 0.6, dayDream: 0.7, conscience: 0.8)
             
         case lowercased.contains("innovative"), lowercased.contains("inventive"):
             // Innovative state maximizes creative processing and risk tolerance
@@ -469,7 +473,7 @@ struct EmotionalTemperature {
             // - Moderate house: Flexible implementation
             // - Low prudence: Embraces innovative risks
             // - Moderate conscience: Standard ethical consideration
-            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.4, conscience: 0.5)
+            return (cortex: 0.7, seer: 0.8, oracle: 0.7, house: 0.6, prudence: 0.4, dayDream: 0.9, conscience: 0.5)
             
         case lowercased.contains("methodical"), lowercased.contains("meticulous"):
             // Methodical state maximizes precision and thorough processing
@@ -479,7 +483,7 @@ struct EmotionalTemperature {
             // - Very high house: Precise implementation
             // - High prudence: Thorough risk assessment
             // - Moderate conscience: Standard ethical consideration
-            return (cortex: 0.8, seer: 0.6, oracle: 0.7, house: 0.8, prudence: 0.7, conscience: 0.6)
+            return (cortex: 0.8, seer: 0.6, oracle: 0.7, house: 0.8, prudence: 0.7, dayDream: 0.5, conscience: 0.6)
             
         default:
             // Return to baseline temperatures when emotion is not recognized
@@ -489,7 +493,7 @@ struct EmotionalTemperature {
     }
 
     // Add logging function
-    private static func logTemperatureCalculation(_ emotion: String, percentage: Double, temps: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, conscience: Double)) {
+    private static func logTemperatureCalculation(_ emotion: String, percentage: Double, temps: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, dayDream: Double, conscience: Double)) {
         // Create a more compact, readable format using emojis as visual indicators
         print("""
             
@@ -499,6 +503,7 @@ struct EmotionalTemperature {
             🔮 Oracle:    \(formatTemperature(temps.oracle))  \(getTemperatureIndicator(temps.oracle))
             🏛️ House:     \(formatTemperature(temps.house))   \(getTemperatureIndicator(temps.house))
             ⚖️ Prudence:  \(formatTemperature(temps.prudence)) \(getTemperatureIndicator(temps.prudence))
+            💭 Day-Dream: \(formatTemperature(temps.dayDream)) \(getTemperatureIndicator(temps.dayDream))
             🤔 Conscience: \(formatTemperature(temps.conscience)) \(getTemperatureIndicator(temps.conscience))
             """)
     }
@@ -537,7 +542,7 @@ struct EmotionalTemperature {
         return getColorCode(temp) + filled + empty + "\u{001B}[0m"
     }
     
-    private static func printFinalTemperatures(_ temps: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, conscience: Double)) {
+    private static func printFinalTemperatures(_ temps: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, dayDream: Double, conscience: Double)) {
         print("\n📊 Final Processing State:")
         
         // Compact single-line format with color-coded bars
@@ -552,6 +557,7 @@ struct EmotionalTemperature {
             ("🔮 Oracle", temps.oracle),
             ("🏛️ House", temps.house),
             ("⚖️ Prudence", temps.prudence),
+            ("💭 Day-Dream", temps.dayDream),
             ("🤔 Conscience", temps.conscience)
         ]
         
@@ -565,7 +571,7 @@ struct EmotionalTemperature {
         
         // Add trend visualization
         print("\n📈 Temperature Distribution:")
-        let values = [temps.cortex, temps.seer, temps.oracle, temps.house, temps.prudence, temps.conscience]
+        let values = [temps.cortex, temps.seer, temps.oracle, temps.house, temps.prudence, temps.dayDream, temps.conscience]
         printTrendGraph(values)
     }
     
@@ -597,7 +603,7 @@ struct EmotionalTemperature {
             print(" │")
         }
         print("0.0 └" + String(repeating: "─", count: width * 2) + "┘")
-        print("    C  S  O  H  P  C")  // Agents legend
+        print("    C  S  O  H  P  D  C")  // Agents legend
     }
 
     static func getValue(for agent: AgentType, from temps: EmotionalTemperatures) -> Double {
@@ -607,6 +613,7 @@ struct EmotionalTemperature {
         case .oracle: return temps.oracle
         case .house: return temps.house
         case .prudence: return temps.prudence
+        case .dayDream: return temps.dayDream
         case .conscience: return temps.conscience
         }
     }
@@ -886,13 +893,14 @@ extension EmotionalTemperature {
         }
     }
     
-    private static func validateTemperatureRanges(_ temps: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, conscience: Double)) {
+    private static func validateTemperatureRanges(_ temps: (cortex: Double, seer: Double, oracle: Double, house: Double, prudence: Double, dayDream: Double, conscience: Double)) {
         // Validate all temperatures are within valid range
         assert(temps.cortex >= 0.0 && temps.cortex <= 1.0, "Cortex temperature out of range")
         assert(temps.seer >= 0.0 && temps.seer <= 1.0, "Seer temperature out of range")
         assert(temps.oracle >= 0.0 && temps.oracle <= 1.0, "Oracle temperature out of range")
         assert(temps.house >= 0.0 && temps.house <= 1.0, "House temperature out of range")
         assert(temps.prudence >= 0.0 && temps.prudence <= 1.0, "Prudence temperature out of range")
+        assert(temps.dayDream >= 0.0 && temps.dayDream <= 1.0, "Day-Dream temperature out of range")
         assert(temps.conscience >= 0.0 && temps.conscience <= 1.0, "Conscience temperature out of range")
     }
 }

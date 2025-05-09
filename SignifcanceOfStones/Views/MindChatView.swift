@@ -1,5 +1,25 @@
 import SwiftUI
 import SwiftData
+import Speech
+import AVFoundation
+
+// Force update view to ensure the UI refreshes
+struct ForceUpdateView<Content: View>: View {
+    @State private var counter = 0
+    let content: () -> Content
+    
+    init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+    
+    var body: some View {
+        content()
+            .id(counter)
+            .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+                counter += 1
+            }
+    }
+}
 
 @MainActor
 class MindViewModel: ObservableObject {
@@ -8,6 +28,9 @@ class MindViewModel: ObservableObject {
     @Published var error: String?
     @Published var showingChatHistory = false
     
+    // Add speech recognizer
+    @Published var speechRecognizer = SpeechRecognizer()
+    
     private let mindSystem: MindSystem
     private let modelContext: ModelContext
     
@@ -15,6 +38,10 @@ class MindViewModel: ObservableObject {
     
     // Add new property to track current agent activity
     @Published var processingState: ProcessingState = .idle
+    
+    // Add state for recording
+    @Published var isRecordingActive: Bool = false
+    @Published var liveTranscription: String = ""
     
     // Define processing states
     enum ProcessingState {
@@ -26,6 +53,7 @@ class MindViewModel: ObservableObject {
         case prudenceAssessing
         case conscienceWeighing
         case integrating
+        case custom(String)
         
         var description: String {
             switch self {
@@ -45,6 +73,8 @@ class MindViewModel: ObservableObject {
                 return "Weighing ethical implications..."
             case .integrating:
                 return "Integrating insights into final response..."
+            case .custom(let customDescription):
+                return customDescription + "..."
             }
         }
         
@@ -58,6 +88,7 @@ class MindViewModel: ObservableObject {
             case .prudenceAssessing: return "exclamationmark.shield"
             case .conscienceWeighing: return "heart.circle"
             case .integrating: return "arrow.triangle.merge"
+            case .custom: return "wand.and.stars"
             }
         }
     }
@@ -85,6 +116,16 @@ class MindViewModel: ObservableObject {
         self.mindSystem = MindSystem(settings: settings, modelContext: modelContext)
         
         modelContext.insert(currentChat)
+        
+        // Configure the speech recognizer callback
+        speechRecognizer.onFinishRecording = { [weak self] text in
+            guard let self = self, !text.isEmpty else { return }
+            print("Speech recognized: \(text)")
+            // Update on main thread
+            DispatchQueue.main.async {
+                self.userInput = text
+            }
+        }
     }
     
     func sendMessage() async {
@@ -163,6 +204,7 @@ struct MindChatView: View {
     @Query(sort: \Chat.timestamp, order: .reverse) private var chats: [Chat]
     @StateObject private var viewModel: MindViewModel
     @State private var showingSettings = false
+    @State private var showingSpeechPermissionAlert = false
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: MindViewModel(modelContext: modelContext))
@@ -213,6 +255,29 @@ struct MindChatView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .alert("Microphone Access", isPresented: $viewModel.speechRecognizer.permissionDenied) {
+            Button("Settings", role: .destructive) {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Microphone and Speech Recognition permissions are required to use voice input. Please update your privacy settings.")
+        }
+        .alert("Microphone Access", isPresented: $showingSpeechPermissionAlert) {
+            Button("Settings", role: .destructive) {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Microphone and Speech Recognition permissions are required to use voice input. Please enable them in your device settings.")
+        }
+        .onAppear {
+            checkSpeechPermissions()
+        }
     }
     
     private var chatList: some View {
@@ -255,6 +320,7 @@ struct MindChatView: View {
         }
     }
     
+    // SIMPLIFIED INPUT BAR - DIRECT APPROACH
     private var inputBar: some View {
         VStack(spacing: 8) {
             if let error = viewModel.error {
@@ -264,9 +330,38 @@ struct MindChatView: View {
             }
             
             HStack {
-                TextField("Type a message...", text: $viewModel.userInput)
-                    .textFieldStyle(.roundedBorder)
+                // MICROPHONE BUTTON - SIMPLIFIED
+                Button {
+                    // Direct action without complex state management
+                if viewModel.speechRecognizer.isRecording {
+                            viewModel.speechRecognizer.stopRecording()
+                } else {
+                        viewModel.speechRecognizer.startRecording()
+                    }
+                } label: {
+                    // Simple visuals
+                    ZStack {
+                        Circle()
+                            .fill(viewModel.speechRecognizer.isRecording ? Color.red : Color.blue.opacity(0.2))
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "mic.fill")
+                            .font(.title3)
+                            .foregroundColor(viewModel.speechRecognizer.isRecording ? .white : .blue)
+                    }
+                    }
+                    .padding(.leading, 8)
                 
+                // STANDARD TEXT FIELD
+                TextField("Type a message...", text: $viewModel.userInput)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .onReceive(viewModel.speechRecognizer.$recognizedText) { newText in
+                        if viewModel.speechRecognizer.isRecording && !newText.isEmpty {
+                            viewModel.userInput = newText
+                        }
+                    }
+                
+                // SEND BUTTON
                 Button {
                     Task {
                         await viewModel.sendMessage()
@@ -274,11 +369,33 @@ struct MindChatView: View {
                 } label: {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.title2)
+                        .foregroundColor(.blue)
                 }
                 .disabled(viewModel.userInput.isEmpty || viewModel.isProcessing)
                 .padding(.trailing)
             }
             .padding([.leading, .bottom])
+            
+            // Recording indicator
+            if viewModel.speechRecognizer.isRecording {
+                HStack {
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 8, height: 8)
+                    Text("Recording: \(viewModel.speechRecognizer.recognizedText)")
+                        .font(.caption)
+                    Spacer()
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    private func checkSpeechPermissions() {
+        viewModel.speechRecognizer.requestPermissions { authorized in
+            if !authorized {
+                showingSpeechPermissionAlert = true
+            }
         }
     }
 }
